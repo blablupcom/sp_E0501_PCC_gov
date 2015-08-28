@@ -101,7 +101,7 @@ def convert_mth_strings ( mth_string ):
     return mth_string
 # pull down the content from the webpage
 html = requests.get(url, headers = user_agent)
-soup = BeautifulSoup(html.text)
+soup = BeautifulSoup(html.text, 'lxml')
 # find all entries with the required class
 links = soup.find('a', attrs = {'id':'downloadData'})
 
