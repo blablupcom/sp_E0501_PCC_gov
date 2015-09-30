@@ -1,30 +1,102 @@
+
 # -*- coding: utf-8 -*-
+
+#### IMPORTS 1.0
+
 import os
 import re
-import requests
 import scraperwiki
 import urllib2
-#from datetime import datetime
-from bs4 import BeautifulSoup
+import requests
 import datetime
 from dateutil.rrule import rrule, MONTHLY
-import time
-from time import strptime, strftime
-#from datetime import date
+from bs4 import BeautifulSoup
+
+#### FUNCTIONS 1.0
+
+def validateFilename(filename):
+    filenameregex = '^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9]+_[0-9][0-9][0-9][0-9]_[0-9QY][0-9]$'
+    dateregex = '[0-9][0-9][0-9][0-9]_[0-9QY][0-9]'
+    validName = (re.search(filenameregex, filename) != None)
+    found = re.search(dateregex, filename)
+    if not found:
+        return False
+    date = found.group(0)
+    now = datetime.datetime.now()
+    year, month = date[:4], date[5:7]
+    validYear = (2000 <= int(year) <= now.year)
+    if 'Q' in date:
+        validMonth = (month in ['Q0', 'Q1', 'Q2', 'Q3', 'Q4'])
+    elif 'Y' in date:
+        validMonth = (month in ['Y1'])
+    else:
+        try:
+            validMonth = datetime.datetime.strptime(date, "%Y_%m") < now
+        except:
+            return False
+    if all([validName, validYear, validMonth]):
+        return True
 
 
-# Set up variables
+def validateURL(url):
+    try:
+        r = requests.post(url, data = datadict, allow_redirects=True, timeout=20)
+        count = 1
+        while r.status_code == 500 and count < 4:
+            print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
+            count += 1
+            r = requests.post(url, data=data, allow_redirects=True, timeout=20)
+        sourceFilename = r.headers.get('Content-Disposition')
+
+        if sourceFilename:
+            ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
+        else:
+            ext = os.path.splitext(url)[1]
+        validURL = r.status_code == 200
+        validFiletype = ext in ['.csv', '.xls', '.xlsx']
+        return validURL, validFiletype
+    except:
+        print ("Error validating URL.")
+        return False, False
+
+def validate(filename, file_url):
+    validFilename = validateFilename(filename)
+    validURL, validFiletype = validateURL(file_url)
+    if not validFilename:
+        print filename, "*Error: Invalid filename*"
+        print file_url
+        return False
+    if not validURL:
+        print filename, "*Error: Invalid URL*"
+        print file_url
+        return False
+    if not validFiletype:
+        print filename, "*Error: Invalid filetype*"
+        print file_url
+        return False
+    return True
+
+
+def convert_mth_strings ( mth_string ):
+    month_numbers = {'JAN': '01', 'FEB': '02', 'MAR':'03', 'APR':'04', 'MAY':'05', 'JUN':'06', 'JUL':'07', 'AUG':'08', 'SEP':'09','OCT':'10','NOV':'11','DEC':'12' }
+    for k, v in month_numbers.items():
+        mth_string = mth_string.replace(k, v)
+    return mth_string
+
+
+#### VARIABLES 1.0
+
 entity_id = "E0501_PCC_gov"
 url = "http://data.peterborough.gov.uk/View/commercial-activities/transparency-code-payments-over-500"
 errors = 0
 start_date = datetime.date(2014,1,1).strftime('%d/%m/%Y')
 std = datetime.datetime(2014,1,1)
-end_date = datetime.date(2015,7,22).strftime('%d/%m/%Y')
-edd = datetime.datetime(2015,7,22)
+end_date = datetime.date(2015,9,22).strftime('%d/%m/%Y')
+edd = datetime.datetime(2015,9,22)
 user_agent = {'User-agent': 'Mozilla/5.0'}
 dates_csv = [dt.strftime('%m %Y') for dt in rrule(MONTHLY, dtstart=std, until=edd)]
 
-data = {'OrderByColumn':'[BodyName]',
+datadict = {'OrderByColumn':'[BodyName]',
 'OrderByDirection':'ASC',
 'Download':'csv',
 'radio':'on',
@@ -56,81 +128,43 @@ data = {'OrderByColumn':'[BodyName]',
 'CurrentPage':	'1',
 'PageNumber':''	}
 
-# Set up functions
-def validateFilename(filename):
-    filenameregex = '^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9]+_[0-9][0-9][0-9][0-9]_[0-9][0-9]$'
-    dateregex = '[0-9][0-9][0-9][0-9]_[0-9][0-9]'
-    validName = (re.search(filenameregex, filename) != None)
-    found = re.search(dateregex, filename)
-    if not found:
-        return False
-    date = found.group(0)
-    year, month = int(date[:4]), int(date[5:7])
-    now = datetime.datetime.now()
-    validYear = (2000 <= year <= now.year)
-    validMonth = (1 <= month <= 12)
-    if all([validName, validYear, validMonth]):
-        return True
-def validateURL(url, data):
-    try:
-        r = requests.post(url, data = data, allow_redirects=True, timeout=20)
-        count = 1
-        while r.status_code == 500 and count < 4:
-            print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
-            count += 1
-            r = requests.post(url, data=data, allow_redirects=True, timeout=20)
-        sourceFilename = r.headers.get('Content-Disposition')
+data = []
 
-        if sourceFilename:
-            ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
-        else:
-            ext = os.path.splitext(url)[1]
-        validURL = r.status_code == 200
-        validFiletype = ext in ['.csv', '.xls', '.xlsx']
-        return validURL, validFiletype
-    except:
-        raise
-def convert_mth_strings ( mth_string ):
+#### READ HTML 1.0
 
-    month_numbers = {'JAN': '01', 'FEB': '02', 'MAR':'03', 'APR':'04', 'MAY':'05', 'JUN':'06', 'JUL':'07', 'AUG':'08', 'SEP':'09','OCT':'10','NOV':'11','DEC':'12' }
-    #loop through the months in our dictionary
-    for k, v in month_numbers.items():
-#then replace the word with the number
 
-        mth_string = mth_string.replace(k, v)
-    return mth_string
-# pull down the content from the webpage
 html = requests.get(url, headers = user_agent)
 soup = BeautifulSoup(html.text, 'lxml')
-# find all entries with the required class
-links = soup.find('a', attrs = {'id':'downloadData'})
 
+
+#### SCRAPE DATA
+
+links = soup.find('a', attrs = {'id':'downloadData'})
 for date_csv in dates_csv:
     csvfile = date_csv.split(' ')
     csvYr = csvfile[-1]
     csvMth = csvfile[0]
     csvMth = convert_mth_strings(csvMth.upper())
+    data.append([csvYr, csvMth, url])
+
+#### STORE DATA 1.0
+
+for row in data:
+    csvYr, csvMth, url = row
     filename = entity_id + "_" + csvYr + "_" + csvMth
     todays_date = str(datetime.datetime.now())
-    file_url = url
-    validFilename = validateFilename(filename)
-    validURL, validFiletype = validateURL(file_url, data)
-    if not validFilename:
-        print filename, "*Error: Invalid filename*"
-        print file_url
+    file_url = url.strip()
+
+
+    valid = validate(filename, file_url)
+
+    if valid == True:
+        scraperwiki.sqlite.save(unique_keys=['l'], data={"l": file_url, "f": filename, "d": todays_date })
+        print filename
+    else:
         errors += 1
-        continue
-    if not validURL:
-        print filename, "*Error: Invalid URL*"
-        print file_url
-        errors += 1
-        continue
-    if not validFiletype:
-        print filename, "*Error: Invalid filetype*"
-        print file_url
-        errors += 1
-        continue
-    scraperwiki.sqlite.save(unique_keys=['f'], data={"l": file_url, "f": filename, "d": todays_date })
-    print filename
+
 if errors > 0:
     raise Exception("%d errors occurred during scrape." % errors)
+
+#### EOF
