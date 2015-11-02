@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 #### IMPORTS 1.0
@@ -6,13 +5,13 @@
 import os
 import re
 import scraperwiki
-import urllib2
-import requests
 import datetime
 from dateutil.rrule import rrule, MONTHLY
 from bs4 import BeautifulSoup
 
-#### FUNCTIONS 1.0
+#### FUNCTIONS 1.2
+
+import requests   # import requests for validating url and making post requests
 
 def validateFilename(filename):
     filenameregex = '^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9]+_[0-9][0-9][0-9][0-9]_[0-9QY][0-9]$'
@@ -53,7 +52,7 @@ def validateURL(url):
         else:
             ext = os.path.splitext(url)[1]
         validURL = r.status_code == 200
-        validFiletype = ext in ['.csv', '.xls', '.xlsx']
+        validFiletype = ext.lower() in ['.csv', '.xls', '.xlsx']
         return validURL, validFiletype
     except:
         print ("Error validating URL.")
@@ -91,8 +90,8 @@ url = "http://data.peterborough.gov.uk/View/commercial-activities/transparency-c
 errors = 0
 start_date = datetime.date(2014,1,1).strftime('%d/%m/%Y')
 std = datetime.datetime(2014,1,1)
-end_date = datetime.date(2015,9,22).strftime('%d/%m/%Y')
-edd = datetime.datetime(2015,9,22)
+end_date = datetime.datetime.now().strftime('%d/%m/%Y')
+edd = datetime.datetime.now()
 user_agent = {'User-agent': 'Mozilla/5.0'}
 dates_csv = [dt.strftime('%m %Y') for dt in rrule(MONTHLY, dtstart=std, until=edd)]
 
@@ -130,10 +129,10 @@ datadict = {'OrderByColumn':'[BodyName]',
 
 data = []
 
-#### READ HTML 1.0
+#### READ HTML 1.2
 
 
-html = requests.get(url, headers = user_agent)
+html = requests.get(url, headers = user_agent)     # using requests for making post requests
 soup = BeautifulSoup(html.text, 'lxml')
 
 
@@ -159,7 +158,7 @@ for row in data:
     valid = validate(filename, file_url)
 
     if valid == True:
-        scraperwiki.sqlite.save(unique_keys=['l'], data={"l": file_url, "f": filename, "d": todays_date })
+        scraperwiki.sqlite.save(unique_keys=['f'], data={"l": file_url, "f": filename, "d": todays_date })
         print filename
     else:
         errors += 1
