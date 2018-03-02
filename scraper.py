@@ -38,17 +38,24 @@ def validateFilename(filename):
 
 
 def validateURL(url):
-        import urllib, urllib2
-#     try:
-        data = urllib.urlencode(datadict)
-        req = urllib2.Request(url, data)
-        response = urllib2.urlopen(req)
-        print response.info().getheader('Content-Type')
-    #try:
-      
-   # except:
-   #     print ("Error validating URL.")
-   #     return False, False
+    try:
+        r = requests.post(url, data = datadict, allow_redirects=True, timeout=180)
+        count = 1
+        while r.status_code == 500 and count < 4:
+            print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
+            count += 1
+            r = requests.post(url, data=datadict, allow_redirects=True, timeout=180)
+        sourceFilename = r.headers.get('Content-Disposition')
+        if sourceFilename:
+            ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
+        else:
+            ext = os.path.splitext(url)[1]
+        validURL = r.status_code == 200
+        validFiletype = ext.lower() in ['.csv', '.xls', '.xlsx']
+        return validURL, validFiletype
+    except:
+        print ("Error validating URL.")
+        return False, False
 
 def validate(filename, file_url):
     validFilename = validateFilename(filename)
@@ -132,6 +139,10 @@ soup = BeautifulSoup(html.text, 'lxml')
 #### SCRAPE DATA
 
 links = soup.find('a', attrs = {'id':'downloadData'})
+# for date_csv in dates_csv:
+# csvfile = dates_csv.split(' ')
+# csvYr = csvfile[-1]
+# csvMth = csvfile[0]
 csvMth = 'Y1'
 csvYr = '2017'
 csvMth = convert_mth_strings(csvMth.upper())
