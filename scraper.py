@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 #### FUNCTIONS 1.2
 
 import requests   # import requests for validating url and making post requests
+proxy = {'http':'http://109.108.153.29:80'}
 
 def validateFilename(filename):
     filenameregex = '^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9]+_[0-9][0-9][0-9][0-9]_[0-9QY][0-9]$'
