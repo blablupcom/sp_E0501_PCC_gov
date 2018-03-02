@@ -46,7 +46,6 @@ def validateURL(url):
             count += 1
             r = requests.post(url, data=data, allow_redirects=True, timeout=20)
         sourceFilename = r.headers.get('Content-Disposition')
-        print sourceFilename
         if sourceFilename:
             ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
         else:
