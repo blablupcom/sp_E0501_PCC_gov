@@ -39,13 +39,14 @@ def validateFilename(filename):
 
 def validateURL(url):
     #try:
-        r = requests.post(url, data = datadict, allow_redirects=True, timeout=None)
+        proxy = {'http':'http://35.178.122.190:3128'}
+        r = requests.post(url, data = datadict, allow_redirects=True, timeout=None, proxies=proxy)
         print r.text
         count = 1
         while r.status_code == 500 and count < 4:
             print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
             count += 1
-            r = requests.post(url, data=data, allow_redirects=True, timeout=None)
+            r = requests.post(url, data=data, allow_redirects=True, timeout=None, proxies=proxy)
         sourceFilename = r.headers.get('Content-Disposition')
         if sourceFilename:
             ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
