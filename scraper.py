@@ -61,16 +61,16 @@ def validate(filename, file_url):
     validFilename = validateFilename(filename)
     validURL, validFiletype = validateURL(file_url)
     if not validFilename:
-        print filename, "*Error: Invalid filename*"
-        print file_url
+        print (filename, "*Error: Invalid filename*")
+        print (file_url)
         return False
     if not validURL:
-        print filename, "*Error: Invalid URL*"
-        print file_url
+        print (filename, "*Error: Invalid URL*")
+        print (file_url)
         return False
     if not validFiletype:
-        print filename, "*Error: Invalid filetype*"
-        print file_url
+        print (filename, "*Error: Invalid filetype*")
+        print (file_url)
         return False
     return True
 
@@ -161,7 +161,7 @@ for row in data:
 
     if valid == True:
         scraperwiki.sqlite.save(unique_keys=['f'], data={"l": file_url, "f": filename, "d": todays_date })
-        print filename
+        print (filename)
     else:
         errors += 1
 
