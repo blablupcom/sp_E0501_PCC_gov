@@ -139,12 +139,10 @@ soup = BeautifulSoup(html.text, 'lxml')
 #### SCRAPE DATA
 
 links = soup.find('a', attrs = {'id':'downloadData'})
-for date_csv in dates_csv:
-    csvfile = date_csv.split(' ')
-    csvYr = csvfile[-1]
-    csvMth = csvfile[0]
-    csvMth = convert_mth_strings(csvMth.upper())
-    data.append([csvYr, csvMth, url])
+csvMth = 'Y1'
+csvYr = '2017'
+csvMth = convert_mth_strings(csvMth.upper())
+data.append([csvYr, csvMth, url])
 
 #### STORE DATA 1.0
 
