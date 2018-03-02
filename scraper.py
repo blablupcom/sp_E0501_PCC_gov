@@ -38,8 +38,9 @@ def validateFilename(filename):
 
 
 def validateURL(url):
-    try:
+    #try:
         r = requests.post(url, data = datadict, allow_redirects=True, stream=True, headers=user_agent)
+        print r.text
         count = 1
         while r.status_code >= 500 and count < 4:
             print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
@@ -53,9 +54,9 @@ def validateURL(url):
         validURL = r.status_code == 200
         validFiletype = ext.lower() in ['.csv', '.xls', '.xlsx']
         return validURL, validFiletype
-    except:
-        print ("Error validating URL.")
-        return False, False
+   # except:
+    #    print ("Error validating URL.")
+     #   return False, False
 
 def validate(filename, file_url):
     validFilename = validateFilename(filename)
