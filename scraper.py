@@ -39,7 +39,6 @@ def validateFilename(filename):
 
 def validateURL(url):
     try:
-        print datadict
         r = requests.post(url, data = datadict, allow_redirects=True, timeout=20)
         count = 1
         while r.status_code == 500 and count < 4:
