@@ -41,7 +41,6 @@ def validateURL(url):
     #try:
         proxy = {'http':'http://35.178.122.190:3128'}
         r = requests.post(url, data = datadict, allow_redirects=True, timeout=None, proxies=proxy)
-        print r.text
         count = 1
         while r.status_code == 500 and count < 4:
             print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
