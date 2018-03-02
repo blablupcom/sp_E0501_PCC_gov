@@ -40,7 +40,6 @@ def validateFilename(filename):
 def validateURL(url):
     try:
         r = requests.post(url, data = datadict, allow_redirects=True, timeout=None)
-        print r.text
         count = 1
         while r.status_code == 500 and count < 4:
             print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
