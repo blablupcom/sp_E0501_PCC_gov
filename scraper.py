@@ -47,14 +47,13 @@ def validateFilename(filename):
 def validateURL(url):
     try:
         print datadict
-        r = requests.post(url, data = datadict, allow_redirects=True, timeout=20)
+        r = requests.post(url, data = datadict, allow_redirects=True, timeout=60)
         count = 1
         while r.status_code == 500 and count < 4:
             print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
             count += 1
-            r = requests.post(url, data=data, allow_redirects=True, timeout=20)
+            r = requests.post(url, data=data, allow_redirects=True, timeout=60)
         sourceFilename = r.headers.get('Content-Disposition')
-        print sourceFilename
         if sourceFilename:
             ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
         else:
