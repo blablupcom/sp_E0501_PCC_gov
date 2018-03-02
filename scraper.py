@@ -38,22 +38,14 @@ def validateFilename(filename):
 
 
 def validateURL(url):
+        import urllib, urllib2
+#     try:
+        data = urllib.urlencode(datadict)
+        req = urllib2.Request(url, data)
+        response = urllib2.urlopen(req)
+        print response.info().getheader('Content-Type')
     #try:
-        proxy = {'http':'http://35.178.122.190:3128'}
-        r = requests.post(url, data = datadict, allow_redirects=True, timeout=None, proxies=proxy)
-        count = 1
-        while r.status_code == 500 and count < 4:
-            print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
-            count += 1
-            r = requests.post(url, data=data, allow_redirects=True, timeout=None, proxies=proxy)
-        sourceFilename = r.headers.get('Content-Disposition')
-        if sourceFilename:
-            ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
-        else:
-            ext = os.path.splitext(url)[1]
-        validURL = r.status_code == 200
-        validFiletype = ext.lower() in ['.csv', '.xls', '.xlsx']
-        return validURL, validFiletype
+      
    # except:
    #     print ("Error validating URL.")
    #     return False, False
