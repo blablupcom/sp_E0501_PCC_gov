@@ -40,7 +40,7 @@ def validateFilename(filename):
 
 def validateURL(url):
     #try:
-        r = requests.post(url, data = datadict, allow_redirects=True)
+        r = requests.post(url, data = datadict, stream=True)
         print r.text
         print r.headers
         count = 1
@@ -142,7 +142,7 @@ soup = BeautifulSoup(html.text, 'lxml')
 
 
 #### SCRAPE DATA
-
+print soup
 links = soup.find('a', attrs = {'id':'downloadData'})
 # for date_csv in dates_csv:
 # csvfile = dates_csv.split(' ')
