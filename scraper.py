@@ -39,14 +39,13 @@ def validateFilename(filename):
 
 
 def validateURL(url):
-    #try:
+    try:
         r = requests.post(url, data = datadict, allow_redirects=True, proxies=proxy)
-        print r.text
         count = 1
-        while r.status_code >= 500 and count < 4:
+        while r.status_code == 500 and count < 4:
             print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
             count += 1
-            r = requests.post(url, data = datadict, allow_redirects=True, proxies=proxy)
+            r = requests.post(url, data=datadict, allow_redirects=True,  proxies=proxy)
         sourceFilename = r.headers.get('Content-Disposition')
         if sourceFilename:
             ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
@@ -55,24 +54,24 @@ def validateURL(url):
         validURL = r.status_code == 200
         validFiletype = ext.lower() in ['.csv', '.xls', '.xlsx']
         return validURL, validFiletype
-   # except:
-    #    print ("Error validating URL.")
-     #   return False, False
+    except:
+        print ("Error validating URL.")
+        return False, False
 
 def validate(filename, file_url):
     validFilename = validateFilename(filename)
     validURL, validFiletype = validateURL(file_url)
     if not validFilename:
-        print (filename, "*Error: Invalid filename*")
-        print (file_url)
+        print filename, "*Error: Invalid filename*"
+        print file_url
         return False
     if not validURL:
-        print (filename, "*Error: Invalid URL*")
-        print (file_url)
+        print filename, "*Error: Invalid URL*"
+        print file_url
         return False
     if not validFiletype:
-        print (filename, "*Error: Invalid filetype*")
-        print (file_url)
+        print filename, "*Error: Invalid filetype*"
+        print file_url
         return False
     return True
 
@@ -101,13 +100,13 @@ datadict = {'OrderByColumn':'[BodyName]',
 'Download':'csv',
 'radio':'on',
 'chartType':'table',
-'filter[0].ColumnToSearch':'Date',
+'filter[0].ColumnToSearch':'Amount',
 'filter[0].SearchOperator':'contains',
 'filter[0].SearchText':'',
 'filter[0].SearchOperatorNumber':'greaterthan',
 'filter[0].SearchNumber':'',
-'filter[0].From':'{}'.format(start_date),
-'filter[0].To':'{}'.format(end_date),
+'filter[0].From':'',
+'filter[0].To':'',
 'VisibleColumns':'0_Amount',
 'VisibleColumns':'1_BodyName',
 'VisibleColumns':'2_CapitalorRevenue',
@@ -163,7 +162,7 @@ for row in data:
 
     if valid == True:
         scraperwiki.sqlite.save(unique_keys=['f'], data={"l": file_url, "f": filename, "d": todays_date })
-        print (filename)
+        print filename
     else:
         errors += 1
 
