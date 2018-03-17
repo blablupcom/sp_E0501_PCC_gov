@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 #### FUNCTIONS 1.2
 
 import requests   # import requests for validating url and making post requests
-proxy = {'http':'http://109.108.153.29:80'}
+#proxy = {'http':'http://109.108.153.29:80'}
 
 def validateFilename(filename):
     filenameregex = '^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9]+_[0-9][0-9][0-9][0-9]_[0-9QY][0-9]$'
@@ -40,17 +40,19 @@ def validateFilename(filename):
 
 def validateURL(url):
     #try:
-        r = requests.post(url, data = datadict, allow_redirects=True, proxies=proxy)
+        r = requests.post(url, data = datadict, allow_redirects=True)
         count = 1
         while r.status_code == 500 and count < 4:
             print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
             count += 1
-            r = requests.post(url, data=datadict, allow_redirects=True,  proxies=proxy)
+            r = requests.post(url, data=datadict, allow_redirects=True)
         sourceFilename = r.headers.get('Content-Disposition')
+        print sourceFilename
         if sourceFilename:
             ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
         else:
             ext = os.path.splitext(url)[1]
+        print r.status_code
         validURL = r.status_code == 200
         validFiletype = ext.lower() in ['.csv', '.xls', '.xlsx']
         return validURL, validFiletype
